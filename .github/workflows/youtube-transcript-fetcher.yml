@@ -27,14 +27,17 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install yt-dlp
+          pip install yt-dlp requests
+          sudo apt-get update
+          sudo apt-get install -y deno
       
       - name: Extract video ID and fetch transcript
         run: |
           python << 'EOF'
           import subprocess
-          import re
           from urllib.parse import urlparse, parse_qs
+          import os
+          import time
           
           url = "${{ inputs.youtube_url }}"
           filename = "${{ inputs.filename }}"
@@ -57,26 +60,30 @@ jobs:
           print(f"Extracted video ID: {video_id}")
           print(f"Using clean URL: {clean_url}")
           
-          # Build yt-dlp command with --no-playlist flag
+          os.makedirs('transcripts', exist_ok=True)
+          
+          # Try with deno JavaScript runtime
           cmd = [
               'yt-dlp',
+              '--js-runtime', 'deno',
               '--no-playlist',
               '--write-sub',
               '--sub-langs', 'en',
               '--skip-download',
               '-o', f'transcripts/{filename}.json',
               '--dump-json',
+              '-v',
               clean_url
           ]
           
-          print(f"Running: {' '.join(cmd)}")
+          print(f"Fetching transcript with Deno JS runtime...")
           result = subprocess.run(cmd, capture_output=True, text=True)
           
-          if result.returncode != 0:
-              print(f"Error: {result.stderr}")
-              exit(1)
+          print("STDOUT:", result.stdout)
+          print("STDERR:", result.stderr)
           
-          print(result.stdout)
+          if result.returncode != 0:
+              print(f"Error occurred, but attempting to process anyway...")
           EOF
       
       - name: Process transcript
@@ -85,7 +92,7 @@ jobs:
           import json
           import os
           from datetime import datetime
-          from pathlib import Path
+          import glob
           
           filename = "${{ inputs.filename }}"
           url = "${{ inputs.youtube_url }}"
@@ -93,7 +100,9 @@ jobs:
           json_file = f"transcripts/{filename}.json"
           
           if not os.path.exists(json_file):
-              print(f"Error: {json_file} not found")
+              print(f"JSON file not found: {json_file}")
+              # List what files exist
+              print("Files in transcripts/:", os.listdir('transcripts/'))
               exit(1)
           
           with open(json_file, 'r') as f:
@@ -104,22 +113,34 @@ jobs:
           
           # Look for subtitle file
           subtitle_file = None
-          for ext in ['.en.vtt', '.en.srt']:
-              potential_file = f"transcripts/{filename}{ext}"
-              if os.path.exists(potential_file):
-                  subtitle_file = potential_file
+          for ext in ['.en.vtt', '.en.srt', '.vtt', '.srt']:
+              pattern = f"transcripts/{filename}{ext}"
+              files = glob.glob(pattern)
+              if files:
+                  subtitle_file = files[0]
                   break
+          
+          # Also check without filename
+          if not subtitle_file:
+              for ext in ['.en.vtt', '.en.srt']:
+                  pattern = f"transcripts/*{ext}"
+                  files = glob.glob(pattern)
+                  if files:
+                      subtitle_file = files[0]
+                      break
           
           if not subtitle_file:
               print("Error: No subtitle file found")
+              print("Files available:", os.listdir('transcripts/'))
               exit(1)
+          
+          print(f"Using subtitle file: {subtitle_file}")
           
           # Parse subtitle file
           transcript_text = ""
           with open(subtitle_file, 'r') as f:
               lines = f.readlines()
               for line in lines:
-                  # Skip timing lines and empty lines
                   if '-->' not in line and line.strip() and not line.startswith('WEBVTT'):
                       transcript_text += line
           
@@ -136,8 +157,9 @@ jobs:
           print(f"✓ Transcript saved to {md_file}")
           
           # Clean up temporary files
-          os.remove(json_file)
-          if subtitle_file:
+          if os.path.exists(json_file):
+              os.remove(json_file)
+          if subtitle_file and subtitle_file != md_file:
               os.remove(subtitle_file)
           EOF
       
