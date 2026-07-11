@@ -26,55 +26,72 @@ jobs:
       
       - name: Install dependencies
         run: |
+          pip install --upgrade pip
           pip install yt-dlp
       
       - name: Fetch YouTube transcript
         id: transcript
+        env:
+          YOUTUBE_URL: ${{ inputs.youtube_url }}
+          FILENAME: ${{ inputs.filename }}
         run: |
           python << 'EOF'
           import yt_dlp
-          import json
           import sys
+          import os
           from datetime import datetime
           
-          url = "${{ inputs.youtube_url }}"
-          filename = "${{ inputs.filename }}"
+          url = os.environ.get('YOUTUBE_URL')
+          filename = os.environ.get('FILENAME')
           
           # Create transcripts directory if it doesn't exist
-          import os
           os.makedirs('transcripts', exist_ok=True)
           
           ydl_opts = {
-              'quiet': True,
-              'no_warnings': True,
-              'writesubtitles': True,
-              'subtitle_langs': ['en'],
+              'quiet': False,
+              'no_warnings': False,
+              'skip_download': True,
+              'extractor_args': {'youtube': {'skip_webpage': False}},
+              'socket_timeout': 30,
           }
           
           try:
               with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                  print(f"Fetching transcript from: {url}")
                   info = ydl.extract_info(url, download=False)
                   subtitles = info.get('subtitles', {})
                   video_title = info.get('title', 'Unknown')
                   
+                  print(f"Available languages: {list(subtitles.keys())}")
+                  
+                  # Try English first, then any available language
+                  lang = None
                   if 'en' in subtitles:
-                      transcript = '\n'.join([item['text'] for item in subtitles['en']])
+                      lang = 'en'
+                  elif subtitles:
+                      lang = list(subtitles.keys())[0]
+                  
+                  if lang:
+                      transcript = '\n'.join([item['text'] for item in subtitles[lang]])
                       
                       # Create markdown file with metadata
                       output_file = f"transcripts/{filename}.md"
                       with open(output_file, 'w') as f:
                           f.write(f"# {video_title}\n\n")
                           f.write(f"**Source:** {url}\n")
+                          f.write(f"**Language:** {lang}\n")
                           f.write(f"**Fetched:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
                           f.write("## Transcript\n\n")
                           f.write(transcript)
                       
-                      print(f"Transcript saved to {output_file}")
+                      print(f"✓ Transcript saved to {output_file}")
                   else:
-                      print("No English subtitles found")
+                      print(f"✗ No subtitles found.")
                       sys.exit(1)
           except Exception as e:
-              print(f"Error: {e}")
+              print(f"✗ Error: {e}")
+              import traceback
+              traceback.print_exc()
               sys.exit(1)
           EOF
       
