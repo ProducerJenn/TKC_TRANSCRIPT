@@ -1,0 +1,87 @@
+name: YouTube Transcript Fetcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      youtube_url:
+        description: 'YouTube URL'
+        required: true
+        type: string
+      filename:
+        description: 'Output filename (without extension, default: transcript)'
+        required: false
+        type: string
+        default: 'transcript'
+
+jobs:
+  fetch-transcript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install yt-dlp
+      
+      - name: Fetch YouTube transcript
+        id: transcript
+        run: |
+          python << 'EOF'
+          import yt_dlp
+          import json
+          import sys
+          from datetime import datetime
+          
+          url = "${{ inputs.youtube_url }}"
+          filename = "${{ inputs.filename }}"
+          
+          # Create transcripts directory if it doesn't exist
+          import os
+          os.makedirs('transcripts', exist_ok=True)
+          
+          ydl_opts = {
+              'quiet': True,
+              'no_warnings': True,
+              'writesubtitles': True,
+              'subtitle_langs': ['en'],
+          }
+          
+          try:
+              with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                  info = ydl.extract_info(url, download=False)
+                  subtitles = info.get('subtitles', {})
+                  video_title = info.get('title', 'Unknown')
+                  
+                  if 'en' in subtitles:
+                      transcript = '\n'.join([item['text'] for item in subtitles['en']])
+                      
+                      # Create markdown file with metadata
+                      output_file = f"transcripts/{filename}.md"
+                      with open(output_file, 'w') as f:
+                          f.write(f"# {video_title}\n\n")
+                          f.write(f"**Source:** {url}\n")
+                          f.write(f"**Fetched:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                          f.write("## Transcript\n\n")
+                          f.write(transcript)
+                      
+                      print(f"Transcript saved to {output_file}")
+                  else:
+                      print("No English subtitles found")
+                      sys.exit(1)
+          except Exception as e:
+              print(f"Error: {e}")
+              sys.exit(1)
+          EOF
+      
+      - name: Commit and push transcript
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add transcripts/
+          git commit -m "Add YouTube transcript: ${{ inputs.filename }}" || echo "No changes to commit"
+          git push
