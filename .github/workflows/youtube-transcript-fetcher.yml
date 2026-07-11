@@ -27,17 +27,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install yt-dlp requests
-          sudo apt-get update
-          sudo apt-get install -y deno
+          pip install pytube youtube-transcript-api requests
       
-      - name: Extract video ID and fetch transcript
+      - name: Fetch YouTube transcript
         run: |
           python << 'EOF'
-          import subprocess
+          from youtube_transcript_api import YouTubeTranscriptApi
           from urllib.parse import urlparse, parse_qs
           import os
-          import time
+          from datetime import datetime
+          import re
           
           url = "${{ inputs.youtube_url }}"
           filename = "${{ inputs.filename }}"
@@ -56,111 +55,62 @@ jobs:
               print(f"Could not extract video ID from: {url}")
               exit(1)
           
-          clean_url = f"https://www.youtube.com/watch?v={video_id}"
           print(f"Extracted video ID: {video_id}")
-          print(f"Using clean URL: {clean_url}")
           
           os.makedirs('transcripts', exist_ok=True)
           
-          # Try with deno JavaScript runtime
-          cmd = [
-              'yt-dlp',
-              '--js-runtime', 'deno',
-              '--no-playlist',
-              '--write-sub',
-              '--sub-langs', 'en',
-              '--skip-download',
-              '-o', f'transcripts/{filename}.json',
-              '--dump-json',
-              '-v',
-              clean_url
-          ]
-          
-          print(f"Fetching transcript with Deno JS runtime...")
-          result = subprocess.run(cmd, capture_output=True, text=True)
-          
-          print("STDOUT:", result.stdout)
-          print("STDERR:", result.stderr)
-          
-          if result.returncode != 0:
-              print(f"Error occurred, but attempting to process anyway...")
-          EOF
-      
-      - name: Process transcript
-        run: |
-          python << 'EOF'
-          import json
-          import os
-          from datetime import datetime
-          import glob
-          
-          filename = "${{ inputs.filename }}"
-          url = "${{ inputs.youtube_url }}"
-          
-          json_file = f"transcripts/{filename}.json"
-          
-          if not os.path.exists(json_file):
-              print(f"JSON file not found: {json_file}")
-              # List what files exist
-              print("Files in transcripts/:", os.listdir('transcripts/'))
+          try:
+              # Fetch available captions
+              print("Fetching available captions...")
+              captions = YouTubeTranscriptApi.list_transcripts(video_id)
+              
+              # Try to get English captions
+              transcript = None
+              if 'en' in captions.manually_created_transcripts:
+                  transcript = captions.manually_created_transcripts['en'].fetch()
+                  print("✓ Using manually created English captions")
+              elif captions.manually_created_transcripts:
+                  # Get first available manually created caption
+                  first_lang = list(captions.manually_created_transcripts.keys())[0]
+                  transcript = captions.manually_created_transcripts[first_lang].fetch()
+                  print(f"✓ Using manually created captions in {first_lang}")
+              elif 'en' in captions.generated_transcripts:
+                  transcript = captions.generated_transcripts['en'].fetch()
+                  print("✓ Using auto-generated English captions")
+              elif captions.generated_transcripts:
+                  # Get first available generated caption
+                  first_lang = list(captions.generated_transcripts.keys())[0]
+                  transcript = captions.generated_transcripts[first_lang].fetch()
+                  print(f"✓ Using auto-generated captions in {first_lang}")
+              else:
+                  print("✗ No captions available for this video")
+                  exit(1)
+              
+              # Get video title
+              from pytube import YouTube
+              yt = YouTube(url)
+              video_title = yt.title
+              
+              # Combine transcript entries
+              transcript_text = '\n'.join([item['text'] for item in transcript])
+              
+              # Create markdown file
+              md_file = f"transcripts/{filename}.md"
+              with open(md_file, 'w') as f:
+                  f.write(f"# {video_title}\n\n")
+                  f.write(f"**Source:** {url}\n")
+                  f.write(f"**Video ID:** {video_id}\n")
+                  f.write(f"**Fetched:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                  f.write("## Transcript\n\n")
+                  f.write(transcript_text)
+              
+              print(f"✓ Transcript saved to {md_file}")
+              
+          except Exception as e:
+              print(f"✗ Error: {e}")
+              import traceback
+              traceback.print_exc()
               exit(1)
-          
-          with open(json_file, 'r') as f:
-              data = json.load(f)
-          
-          video_title = data.get('title', 'Unknown')
-          video_id = data.get('id', 'Unknown')
-          
-          # Look for subtitle file
-          subtitle_file = None
-          for ext in ['.en.vtt', '.en.srt', '.vtt', '.srt']:
-              pattern = f"transcripts/{filename}{ext}"
-              files = glob.glob(pattern)
-              if files:
-                  subtitle_file = files[0]
-                  break
-          
-          # Also check without filename
-          if not subtitle_file:
-              for ext in ['.en.vtt', '.en.srt']:
-                  pattern = f"transcripts/*{ext}"
-                  files = glob.glob(pattern)
-                  if files:
-                      subtitle_file = files[0]
-                      break
-          
-          if not subtitle_file:
-              print("Error: No subtitle file found")
-              print("Files available:", os.listdir('transcripts/'))
-              exit(1)
-          
-          print(f"Using subtitle file: {subtitle_file}")
-          
-          # Parse subtitle file
-          transcript_text = ""
-          with open(subtitle_file, 'r') as f:
-              lines = f.readlines()
-              for line in lines:
-                  if '-->' not in line and line.strip() and not line.startswith('WEBVTT'):
-                      transcript_text += line
-          
-          # Create markdown file
-          md_file = f"transcripts/{filename}.md"
-          with open(md_file, 'w') as f:
-              f.write(f"# {video_title}\n\n")
-              f.write(f"**Source:** {url}\n")
-              f.write(f"**Video ID:** {video_id}\n")
-              f.write(f"**Fetched:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-              f.write("## Transcript\n\n")
-              f.write(transcript_text)
-          
-          print(f"✓ Transcript saved to {md_file}")
-          
-          # Clean up temporary files
-          if os.path.exists(json_file):
-              os.remove(json_file)
-          if subtitle_file and subtitle_file != md_file:
-              os.remove(subtitle_file)
           EOF
       
       - name: Commit and push transcript
