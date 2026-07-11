@@ -1,0 +1,113 @@
+name: YouTube Transcript Fetcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      youtube_url:
+        description: 'YouTube URL'
+        required: true
+        type: string
+      filename:
+        description: 'Output filename (without extension)'
+        required: false
+        type: string
+        default: 'transcript'
+
+jobs:
+  fetch-transcript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Fetch transcript via Supadata
+        env:
+          SUPADATA_KEY: ${{ secrets.SUPADATA_KEY }}
+        run: |
+          python << 'PYEOF'
+          import requests, json, re, os, sys
+          from urllib.parse import urlparse, parse_qs
+          from datetime import datetime
+
+          url = "${{ inputs.youtube_url }}"
+          filename = "${{ inputs.filename }}"
+          api_key = os.environ["SUPADATA_KEY"]
+
+          # Extract video ID
+          parsed = urlparse(url)
+          params = parse_qs(parsed.query)
+          if "v" in params:
+              video_id = params["v"][0]
+          elif "youtu.be" in url:
+              video_id = url.split("youtu.be/")[-1].split("?")[0]
+          else:
+              print(f"Could not extract video ID from: {url}")
+              sys.exit(1)
+
+          print(f"Video ID: {video_id}")
+
+          # Fetch via Supadata
+          print("Fetching transcript via Supadata API...")
+          resp = requests.get(
+              "https://api.supadata.ai/v1/youtube/transcript",
+              params={"url": url, "lang": "en", "chunkSize": 1000},
+              headers={"x-api-key": api_key},
+              timeout=30,
+          )
+
+          if resp.status_code == 429:
+              print("Supadata rate limited. Waiting 5s and retrying...")
+              import time; time.sleep(5)
+              resp = requests.get(
+                  "https://api.supadata.ai/v1/youtube/transcript",
+                  params={"url": url, "lang": "en", "chunkSize": 1000},
+                  headers={"x-api-key": api_key},
+                  timeout=30,
+              )
+
+          if resp.status_code != 200:
+              print(f"Supadata error (HTTP {resp.status_code}): {resp.text[:500]}")
+              sys.exit(1)
+
+          data = resp.json()
+          chunks = data.get("content", [])
+          if not chunks:
+              print("No transcript content returned.")
+              sys.exit(1)
+
+          print(f"Received {len(chunks)} chunks")
+
+          # Convert to our format
+          def ms_to_ts(ms):
+              s = ms // 1000
+              m, sec = divmod(s, 60)
+              h, m = divmod(m, 60)
+              return f"{h}:{m:02d}:{sec:02d}" if h else f"{m}:{sec:02d}"
+
+          os.makedirs("transcripts", exist_ok=True)
+          md_file = f"transcripts/{filename}_TS.md"
+
+          with open(md_file, "w") as f:
+              for chunk in chunks:
+                  ts = ms_to_ts(chunk["offset"])
+                  text = chunk["text"].strip()
+                  text = text.replace("&gt;", ">").replace("&lt;", "<").replace("&amp;", "&")
+                  text = re.sub(r"\s+", " ", text).strip()
+                  if text:
+                      f.write(f"({ts})  {text}\n")
+
+          print(f"Saved {len(chunks)} chunks to {md_file}")
+          PYEOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add transcripts/
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "Add transcript: ${{ inputs.filename }}"
+          git push
