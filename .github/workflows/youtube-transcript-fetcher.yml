@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pytube youtube-transcript-api requests
+          pip install youtube-transcript-api requests
       
       - name: Fetch YouTube transcript
         run: |
@@ -36,7 +36,6 @@ jobs:
           from urllib.parse import urlparse, parse_qs
           import os
           from datetime import datetime
-          import re
           
           url = "${{ inputs.youtube_url }}"
           filename = "${{ inputs.filename }}"
@@ -60,36 +59,50 @@ jobs:
           os.makedirs('transcripts', exist_ok=True)
           
           try:
-              # Fetch available captions
-              print("Fetching available captions...")
-              captions = YouTubeTranscriptApi.list_transcripts(video_id)
+              print("Fetching transcript...")
               
-              # Try to get English captions
-              transcript = None
-              if 'en' in captions.manually_created_transcripts:
-                  transcript = captions.manually_created_transcripts['en'].fetch()
-                  print("✓ Using manually created English captions")
-              elif captions.manually_created_transcripts:
-                  # Get first available manually created caption
-                  first_lang = list(captions.manually_created_transcripts.keys())[0]
-                  transcript = captions.manually_created_transcripts[first_lang].fetch()
-                  print(f"✓ Using manually created captions in {first_lang}")
-              elif 'en' in captions.generated_transcripts:
-                  transcript = captions.generated_transcripts['en'].fetch()
-                  print("✓ Using auto-generated English captions")
-              elif captions.generated_transcripts:
-                  # Get first available generated caption
-                  first_lang = list(captions.generated_transcripts.keys())[0]
-                  transcript = captions.generated_transcripts[first_lang].fetch()
-                  print(f"✓ Using auto-generated captions in {first_lang}")
-              else:
-                  print("✗ No captions available for this video")
-                  exit(1)
+              # Get transcript - this will try English first, then any available language
+              try:
+                  transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+                  print("✓ Retrieved English transcript")
+              except:
+                  # If English not available, get any available language
+                  print("English not available, trying any available language...")
+                  transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+                  
+                  # Try manually created first
+                  if transcript_list.manually_created_transcripts:
+                      lang = list(transcript_list.manually_created_transcripts.keys())[0]
+                      transcript = transcript_list.manually_created_transcripts[lang].fetch()
+                      print(f"✓ Retrieved manually created transcript in {lang}")
+                  # Then try auto-generated
+                  elif transcript_list.generated_transcripts:
+                      lang = list(transcript_list.generated_transcripts.keys())[0]
+                      transcript = transcript_list.generated_transcripts[lang].fetch()
+                      print(f"✓ Retrieved auto-generated transcript in {lang}")
+                  else:
+                      print("✗ No transcripts available")
+                      exit(1)
               
-              # Get video title
-              from pytube import YouTube
-              yt = YouTube(url)
-              video_title = yt.title
+              # Get video title from transcript metadata if available
+              video_title = "YouTube Video"
+              
+              # Try to get title from requests
+              try:
+                  import requests
+                  from bs4 import BeautifulSoup
+                  headers = {'User-Agent': 'Mozilla/5.0'}
+                  response = requests.get(f"https://www.youtube.com/watch?v={video_id}", headers=headers, timeout=10)
+                  if response.status_code == 200:
+                      # Extract title from og:title meta tag
+                      if '<meta property="og:title"' in response.text:
+                          import re
+                          match = re.search(r'<meta property="og:title" content="([^"]+)"', response.text)
+                          if match:
+                              video_title = match.group(1)
+                              print(f"✓ Retrieved video title: {video_title}")
+              except Exception as e:
+                  print(f"Warning: Could not retrieve video title: {e}")
               
               # Combine transcript entries
               transcript_text = '\n'.join([item['text'] for item in transcript])
