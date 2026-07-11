@@ -29,11 +29,6 @@ jobs:
           pip install --upgrade pip
           pip install yt-dlp
       
-      - name: Save YouTube cookies
-        if: secrets.YOUTUBE_COOKIES != ''
-        run: |
-          echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
-      
       - name: Extract video ID and fetch transcript
         run: |
           python << 'EOF'
@@ -69,7 +64,6 @@ jobs:
               '--write-sub',
               '--sub-langs', 'en',
               '--skip-download',
-              '--quiet',
               '-o', f'transcripts/{filename}.json',
               '--dump-json',
               clean_url
