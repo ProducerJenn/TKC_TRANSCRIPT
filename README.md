@@ -46,7 +46,3 @@ done
 ```
 
 Requires `curl` and `jq`.
-
-## Adding Transcripts
-
-New transcripts are added via the [YouTube Transcript Fetcher](https://github.com/ProducerJenn/TKC/actions/workflows/youtube-transcript.yml) GitHub Actions workflow (requires Supadata API key).
