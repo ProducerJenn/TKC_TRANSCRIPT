@@ -35,7 +35,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ProducerJenn/TKC/main/
   -OutFile ".opencode/skills/manage-transcripts/SKILL.md"
 ```
 
-The skill is now available to your opencode agent. Reload or start a new session to pick it up.
+The skill is now available to your AI agent (opencode, Claude Code, Aider, Hermes, etc.). For non-opencode agents, point them to this file or copy the relevant workflows below.
 
 ### Prerequisites
 
@@ -44,7 +44,7 @@ The skill is now available to your opencode agent. Reload or start a new session
 | `curl` | `sudo apt install curl` (Debian) / `sudo dnf install curl` (Fedora) | Included in PowerShell (`Invoke-WebRequest`) |
 | `jq` | `sudo apt install jq` | Download from [stedolan.github.io/jq](https://stedolan.github.io/jq/download/) or `winget install jqlang.jq` |
 
-If using opencode on Windows, run commands in **Git Bash** or **WSL** for full compatibility.
+If using Windows, run commands in **Git Bash** or **WSL** for full compatibility.
 
 ### Verify
 

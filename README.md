@@ -12,7 +12,7 @@ Two timestamp formats exist:
 
 ## Searching Transcripts
 
-Use the **Manage Transcripts** opencode skill to search, summarize, list, and analyze transcripts without cloning the repo:
+Download the **Manage Transcripts** skill to give your AI agent (opencode, Claude Code, Aider, Hermes, etc.) the ability to search, summarize, list, and analyze transcripts without cloning the repo:
 
 ```bash
 # Linux / macOS
@@ -28,7 +28,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ProducerJenn/TKC_TRANS
   -OutFile ".opencode/skills/manage-transcripts/SKILL.md"
 ```
 
-Once installed, ask your opencode agent to search, summarize, or list transcripts.
+Once installed, ask your AI agent to search, summarize, or list transcripts. (For non-opencode agents, point them to the `.opencode/skills/manage-transcripts/SKILL.md` file or copy the relevant workflows.)
 
 ### Quick search (no skill needed)
 
