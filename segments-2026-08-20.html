@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Segment Ideas — Aug 20, 2026</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #171a23;
+    --panel2: #1e2230;
+    --border: #2a3040;
+    --text: #e4e7ee;
+    --muted: #8b93a7;
+    --accent: #ff5c39;
+    --accent2: #4da3ff;
+    --green: #3ecf8e;
+    --yellow: #f5c542;
+    --red: #ff5c5c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  nav.sidebar {
+    width: 260px;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  nav.sidebar h1 {
+    font-size: 15px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  nav.sidebar .date { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  nav.sidebar a.navlink {
+    display: block;
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13.5px;
+    border-left: 3px solid transparent;
+  }
+  nav.sidebar a.navlink:hover { background: var(--panel2); text-decoration: none; }
+  nav.sidebar a.navlink.active { background: var(--panel2); border-left-color: var(--accent); }
+  nav.sidebar .sub { padding-left: 24px; font-size: 12.5px; color: var(--muted); }
+  .nav-section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); margin: 18px 0 6px 12px;
+  }
+
+  main { flex: 1; margin-left: 260px; padding: 32px 40px 80px; max-width: 1000px; }
+
+  /* Header */
+  header.top {
+    background: linear-gradient(135deg, #1b2030, #232a40);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+  }
+  header.top h2 { font-size: 26px; margin-bottom: 6px; }
+  header.top p { color: var(--muted); font-size: 14px; }
+  .stats { display: flex; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
+  .stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    text-align: center;
+  }
+  .stat b { display: block; font-size: 20px; color: var(--accent); }
+  .stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Segments */
+  section.segment {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 30px;
+    overflow: hidden;
+    scroll-margin-top: 20px;
+  }
+  .seg-header {
+    padding: 20px 28px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .seg-header:hover { filter: brightness(1.08); }
+  .seg-header h3 { font-size: 19px; }
+  .seg-header .seg-num {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 6px;
+    padding: 2px 9px;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  .seg-header .dur { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .chev { transition: transform 0.2s; color: var(--muted); font-size: 13px; }
+  .collapsed .chev { transform: rotate(-90deg); }
+  .collapsed .seg-body { display: none; }
+  .seg-body { padding: 22px 28px 26px; }
+
+  h4.subhead {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--accent);
+    margin: 20px 0 10px;
+  }
+  h4.subhead:first-child { margin-top: 0; }
+
+  ol.talking { padding-left: 22px; }
+  ol.talking li { margin-bottom: 8px; font-size: 15px; }
+
+  ul.facts { list-style: none; }
+  ul.facts > li {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    font-size: 14.5px;
+  }
+  ul.facts > li.hot { border-left-color: var(--yellow); }
+  .fact-meta { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .badge {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 5px;
+    text-transform: uppercase;
+  }
+  .badge.video { background: rgba(62,207,142,0.15); color: var(--green); border: 1px solid rgba(62,207,142,0.4); }
+  .badge.image { background: rgba(245,197,66,0.12); color: var(--yellow); border: 1px solid rgba(245,197,66,0.35); }
+  .badge.textonly { background: rgba(139,147,167,0.12); color: var(--muted); border: 1px solid var(--border); }
+  .badge.nas {
+    background: rgba(77,163,255,0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(77,163,255,0.3);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 400;
+    text-transform: none;
+    cursor: pointer;
+  }
+  .badge.nas:hover { background: rgba(77,163,255,0.2); }
+  .badge.likes { background: rgba(255,92,57,0.1); color: var(--accent); border: 1px solid rgba(255,92,57,0.3); }
+  .src { font-size: 12.5px; }
+
+  /* Quick rundown table */
+  table.rundown { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.rundown th {
+    text-align: left; padding: 8px 12px;
+    color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.rundown td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.rundown tr:last-child td { border-bottom: none; }
+  table.rundown td:first-child { white-space: nowrap; color: var(--muted); }
+
+  .note {
+    background: rgba(245,197,66,0.07);
+    border: 1px solid rgba(245,197,66,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--yellow);
+    margin-top: 14px;
+  }
+
+  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 40px; }
+
+  @media (max-width: 900px) {
+    nav.sidebar { display: none; }
+    main { margin-left: 0; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="sidebar">
+  <h1>Segment Ideas</h1>
+  <div class="date">Wednesday, August 20, 2026</div>
+
+  <div class="nav-section-label">Overview</div>
+  <a class="navlink" href="#rundown">Quick Rundown</a>
+
+  <div class="nav-section-label">Segments</div>
+  <a class="navlink" href="#seg1"><span class="seg-num" style="margin-right:6px;">1</span>Swalwell's Fall &amp; CA-14</a>
+  <a class="navlink sub" href="#seg1-facts">Key Facts</a>
+  <a class="navlink" href="#seg2"><span class="seg-num" style="margin-right:6px;">2</span>DSA Takeover</a>
+  <a class="navlink sub" href="#seg2-facts">Key Facts</a>
+  <a class="navlink" href="#seg3"><span class="seg-num" style="margin-right:6px;">3</span>Capitol Bomb Plot + Quick Hits</a>
+  <a class="navlink sub" href="#seg3-facts">Key Facts</a>
+
+  <div class="nav-section-label">Media</div>
+  <a class="navlink" href="#media-index">NAS Media Index</a>
+</nav>
+
+<main>
+
+<header class="top">
+  <h2>SEGMENT IDEAS FROM TODAY'S FEED</h2>
+  <p>3 segments (~10 min each) built from today's #news-updates posts &middot; Wednesday, August 20, 2026</p>
+  <div class="stats">
+    <div class="stat"><b>28</b><span>Posts Today</span></div>
+    <div class="stat"><b>23</b><span>Tweets Fetched</span></div>
+    <div class="stat"><b>17</b><span>Video Clips on NAS</span></div>
+    <div class="stat"><b>3</b><span>Segments</span></div>
+  </div>
+</header>
+
+<section class="segment" id="rundown">
+  <div class="seg-header" onclick="toggleSeg(this)">
+    <h3>Quick Rundown</h3>
+    <span class="chev">&#9660;</span>
+  </div>
+  <div class="seg-body">
+    <table class="rundown">
+      <tr><th>Seg</th><th>Title</th><th>Angle</th><th>Media</th></tr>
+      <tr><td>1</td><td><a href="#seg1">Swalwell's Fall &amp; the Race to Replace Him</a></td><td>FBI seizes Swalwell's electronics; his old clips age terribly; DSA favorite Aisha Wahab leads CA-14 runoff</td><td>6 videos</td></tr>
+      <tr><td>2</td><td><a href="#seg2">The DSA Takeover of the Democratic Party</a></td><td>Schumer embraces abolish-prison candidates; Whitsett torches El-Sayed's Medicare for All; Cato's $200T price tag</td><td>6 videos</td></tr>
+      <tr><td>3</td><td><a href="#seg3">Capitol Bomb Plot Foiled + Quick Hits</a></td><td>ISIS-inspired nail bomb plot at NY Capitol; Bessent vs. Dem AGs on tariff refunds; Newsom brags about illegals' healthcare</td><td>5 videos, 1 image</td></tr>
+    </table>
+    <div class="note">Top post of the day: Bernie Sanders stadium-socialism thread &mdash; 23,972 likes, 3,820 RTs. No video attached.</div>
+  </div>
+</section>
+
+<!-- ============ SEGMENT 1 ============ -->
+<section class="segment" id="seg1">
+  <div class="seg-header" onclick="toggleSeg(this)">
+    <h3><span class="seg-num">1</span>Swalwell's Fall &amp; the Race to Replace Him</h3>
+    <span><span class="dur">~10 min</span>&nbsp;&nbsp;<span class="chev">&#9660;</span></span>
+  </div>
+  <div class="seg-body">
+
+    <h4 class="subhead">Talking Points</h4>
+    <ol class="talking" id="seg1-points">
+      <li>FBI agents seizing a former congressman's devices at an airport gate &mdash; how did we get here, and why now?</li>
+      <li>Resurfaced clips: Swalwell demanded the FBI "throw the book" at sex crimes and warned the Fang Fang Files release would be Hoover-level abuse. Which clip ages worse?</li>
+      <li>Meet Aisha Wahab &mdash; the DSA-adjacent frontrunner who told Hasan Piker "yes" to abolishing ICE and ending aid to Israel. Is CA-14 trading up or sideways?</li>
+      <li>From Fang Fang to a federal probe &mdash; does Swalwell's history with a suspected Chinese spy change how viewers see this investigation?</li>
+    </ol>
+
+    <h4 class="subhead" id="seg1-facts">Key Facts</h4>
+    <ul class="facts">
+      <li>
+        BREAKING: FBI seized Eric Swalwell's electronic devices as part of a federal sexual assault investigation &mdash; taken from him Saturday at San Francisco airport and Sunday at his D.C. home.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/swalwell/BREAKING_The_FBI_has_seized_former_Rep_Eric_Swalwells_electronic_devices_as_p_0.mp4</span>
+          <span class="src"><a href="https://x.com/FoxNews/status/2090460639588217153" target="_blank">Source: @FoxNews</a></span>
+        </div>
+      </li>
+      <li>
+        NY Post: FBI confronted Swalwell at the airport during the seizure &mdash; "sexual misconduct probe."
+        <div class="fact-meta">
+          <span class="badge image">Image</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Not yet on NAS">&mdash; not on NAS &mdash;</span>
+          <span class="src"><a href="https://x.com/nypost/status/2090438678329934233" target="_blank">Source: @nypost</a></span>
+        </div>
+      </li>
+      <li class="hot">
+        March clip resurfaces: Swalwell said releasing the Fang Fang Files would be "the greatest abuse of power by an FBI Director since J. Edgar Hoover" &mdash; now we know why he didn't want them out.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/swalwell/This_Swalwell_clip_from_March_is_insane_knowing_what_we_know_nowHe_said_if_t_0.mp4</span>
+          <span class="src"><a href="https://x.com/WesternLensman/status/2089518853764046983" target="_blank">Source: @WesternLensman</a></span>
+        </div>
+      </li>
+      <li>
+        2025 clip: Swalwell said the justice system should "throw the book" at people who commit violent or sexual crimes. "What a great idea, Eric."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/swalwell/2025_Eric_Swalwell_says_the_criminal_justice_system_should_focus_on_and_throw_t_0.mp4</span>
+          <span class="src"><a href="https://x.com/mazemoore/status/2090459249142829104" target="_blank">Source: @mazemoore</a></span>
+        </div>
+      </li>
+      <li>
+        Who replaces him? CA State Sen. Aisha Wahab, an Afghan Muslim born in NYC, leads the runoff for Swalwell's seat &mdash; promises to be a "fierce advocate for H-1B visa workers."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/swalwell/CA_state_senator_Aisha_Wahab_an_Afghan_Muslim_born_in_NYC_is_currently_leading_0.mp4</span>
+          <span class="src"><a href="https://x.com/BreitbartNews/status/2090440639234064782" target="_blank">Source: @BreitbartNews</a></span>
+        </div>
+      </li>
+      <li>
+        Wahab boasts California refuses to hand criminals to ICE and she's facilitating lawsuits to "stall" Trump's deportation agenda.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/swalwell/Aisha_Wahab_who_may_replace_Eric_Swalwell_boasts_that_California_is_refusing_t_0.mp4</span>
+          <span class="src"><a href="https://x.com/BreitbartNews/status/2090449618811203639" target="_blank">Source: @BreitbartNews</a></span>
+        </div>
+      </li>
+      <li>
+        Deep-dive profile: Wahab answered rapid-fire "yes" on Piker's stream &mdash; abolish and prosecute ICE, end all U.S. aid to Israel ("Yes... humanitarian aid is important to me, too"), free Palestine, cancel student debt, tax billionaires. Endorsed by Jayapal, Frost, Casar; Polymarket has her at 85%.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/swalwell/Swalwell_Gone_This_Is_Whos_Next_CA-14_Could_Add_Another_Rashida_Tlaib_Ally_0.mp4</span>
+          <span class="src"><a href="https://x.com/Andreafreedom76/status/2087992231257088212" target="_blank">Source: @Andreafreedom76</a></span>
+        </div>
+      </li>
+    </ul>
+
+  </div>
+</section>
+
+<!-- ============ SEGMENT 2 ============ -->
+<section class="segment" id="seg2">
+  <div class="seg-header" onclick="toggleSeg(this)">
+    <h3><span class="seg-num">2</span>The DSA Takeover of the Democratic Party</h3>
+    <span><span class="dur">~10 min</span>&nbsp;&nbsp;<span class="chev">&#9660;</span></span>
+  </div>
+  <div class="seg-body">
+
+    <h4 class="subhead">Talking Points</h4>
+    <ol class="talking" id="seg2-points">
+      <li>Schumer just called candidates who want to abolish prisons, police, and the border "impressive." Is the DSA wing officially the party now?</li>
+      <li>Medicare for All goes on trial in Michigan &mdash; a Democrat warning voters they'll lose their Blue Cross coverage. Does this crack the coalition?</li>
+      <li>Cato says DSA policies cost $200 trillion over ten years. When the number is that big, does anyone even hear it?</li>
+      <li>Bernie's stadium socialism racked up 24K likes today &mdash; why does class warfare against billionaire sports owners land so well?</li>
+    </ol>
+
+    <h4 class="subhead" id="seg2-facts">Key Facts</h4>
+    <ul class="facts">
+      <li class="hot">
+        MI State Rep. Karen Whitsett warns voters about Abdul El-Sayed's Medicare for All plan: "I do not want to lose my Blue Cross Blue Shield... You will lose your health insurance if the other candidate gets in office."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/dsa/WATCH_KarenWhitsett4_warns_Michigan_voters_about_Abdul_El-Sayeds_Medicare_f_0.mp4</span>
+          <span class="src"><a href="https://x.com/Bobby_LaVallley/status/2090444659851927638" target="_blank">Source: @Bobby_LaVallley</a></span>
+        </div>
+      </li>
+      <li>
+        Chuck Schumer calls far-left Senate candidates &mdash; who want to abolish prisons, police, and the border &mdash; "impressive candidates" that "fit their states."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/dsa/Senate_Democrat_Leader_Chuck_Schumer_says_the_far-Left_Democrats_running_for_Sen_0.mp4</span>
+          <span class="src"><a href="https://x.com/RNCResearch/status/2090532588121198996" target="_blank">Source: @RNCResearch</a></span>
+        </div>
+      </li>
+      <li>
+        Lydia Moynihan cites new Cato Institute study: implementing all DSA policies would cost $200 TRILLION over 10 years.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/dsa/WOW_Lydia_Moynihan_The_alternative_is_the_DSA_Democratic_Socialists_of_Ame_0.mp4</span>
+          <span class="src"><a href="https://x.com/RedWavePress/status/2090465160787837123" target="_blank">Source: @RedWavePress</a></span>
+        </div>
+      </li>
+      <li>
+        Symone Sanders tries to help FL Rep. Angie Nixon spin her DSA membership on air &mdash; and fails terribly. Nixon: joining DSA is "actually about the issues."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/nixon/MSNOWs_Symone_Sanders_tries_to_help_Angie_Nixon_spin_that_she_joined_the_DSA_0.mp4</span>
+          <span class="src"><a href="https://x.com/WesternLensman/status/2090412161629659582" target="_blank">Source: @WesternLensman</a></span>
+        </div>
+      </li>
+      <li>
+        Hasan Piker: "There is no force as destructive to American democracy... as the Republican Party. They hate you... if you're a regular American, they despise you."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/piker/Hasan_Piker_There_is_no_force_as_destructive_to_American_democracy_to_the_l_0.mp4</span>
+          <span class="src"><a href="https://x.com/MarcoFoster_/status/2090187698296197397" target="_blank">Source: @MarcoFoster_</a></span>
+        </div>
+      </li>
+      <li>
+        "DSA Roadmap to Revolution" video circulating &mdash; described as the movement "hating the US Constitution."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/dsa/What_are_the_Democratic_Socialists_up_to_Hating_the_US_Constituti_0.mp4</span>
+          <span class="src"><a href="https://x.com/donthompson1776/status/2090447750282326091" target="_blank">Source: @donthompson1776</a></span>
+        </div>
+      </li>
+      <li>
+        TOP POST OF THE DAY (23.9K likes): Bernie Sanders &mdash; 31 of 32 NFL owners are billionaires, 26 of 30 NBA owners, 26 of 30 MLB owners. "Your tax dollars helped build their stadiums. But today, the average person can't afford the price of a ticket."
+        <div class="fact-meta">
+          <span class="badge textonly">Text Only</span>
+          <span class="badge likes">23,972 likes</span>
+          <span class="src"><a href="https://x.com/SenSanders/status/2090459930738171933" target="_blank">Source: @SenSanders</a></span>
+        </div>
+      </li>
+      <li>
+        MN: Lt. Gov. Peggy Flanagan wins Democratic Senate primary; Rep. Angie Craig concedes common ground: "We may not agree on every issue... but we agree on far more than we disagree."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/democrats/RepAngieCraig_D-MN_on_Lt_Gov_peggyFlanagan_D-MN_Senate_primary_win_We_0.mp4</span>
+          <span class="src"><a href="https://x.com/cspan/status/2090534113379766456" target="_blank">Source: @cspan</a></span>
+        </div>
+      </li>
+      <li>
+        DNC narrows 2028 convention host city race to Boston, Denver, and Philadelphia.
+        <div class="fact-meta">
+          <span class="badge textonly">Article</span>
+          <span class="src"><a href="https://thehill.com/homenews/campaign/6041940-dnc-narrows-2028-convention-sites/" target="_blank">Source: The Hill</a></span>
+        </div>
+      </li>
+    </ul>
+
+  </div>
+</section>
+
+<!-- ============ SEGMENT 3 ============ -->
+<section class="segment" id="seg3">
+  <div class="seg-header" onclick="toggleSeg(this)">
+    <h3><span class="seg-num">3</span>Capitol Bomb Plot Foiled + Quick Hits</h3>
+    <span><span class="dur">~10 min</span>&nbsp;&nbsp;<span class="chev">&#9660;</span></span>
+  </div>
+  <div class="seg-body">
+
+    <h4 class="subhead">Talking Points</h4>
+    <ol class="talking" id="seg3-points">
+      <li>Jessica Bowie, 35, pledged allegiance to ISIS and planned to bomb the NY State Capitol with a nail bomb in a DoorDash bag. How does a U.S.-born woman radicalize to this point?</li>
+      <li>She surveilled the Capitol five times and bought bomb materials before the FBI moved. What does this say about the domestic threat picture in 2026?</li>
+      <li>Bessent turns the tariff-refund ruling against Democrat AGs: "the American people HAD THE MONEY." Who actually wins this argument?</li>
+      <li>Newsom brags about taxpayer-funded healthcare for illegal immigrants: "I'll take the grief." Political courage or fiscal time bomb?</li>
+    </ol>
+
+    <h4 class="subhead" id="seg3-facts">Key Facts</h4>
+    <ul class="facts">
+      <li class="hot">
+        FBI Director Kash Patel: agents arrested Jessica Bowie, who allegedly swore allegiance to ISIS and planned a deadly explosives attack on the NY State Capitol &mdash; wanted to "destroy as much of the building as possible" and "kill the Senators while they are meeting." Surveillance conducted at least 5 times; bomb materials purchased. FBI claims 400+ attacks disrupted in 2026.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/illegals/Thanks_to_the_brilliant_work_of_FBIAlbany_and_our_partners_-_this_FBI_stopped_y_0.mp4</span>
+          <span class="src"><a href="https://x.com/FBIDirectorKash/status/2090519585242173645" target="_blank">Source: @FBIDirectorKash</a></span>
+        </div>
+      </li>
+      <li>
+        Complaint details: Bowie called lawmakers "infidels," praised 9/11 ("Praise be to Allah for Sept. 11"), bought nails to pack the bomb inside a DoorDash bag, and planned follow-up attacks &mdash; NYC New Year's Eve, then the White House.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/illegals/HOLY_SMOKES_The_Muslim_woman_who_tried_to_bomb_the_New_York_State_Capitol_0.mp4</span>
+          <span class="src"><a href="https://x.com/EricLDaugh/status/2090515356775584010" target="_blank">Source: @EricLDaugh</a></span>
+        </div>
+      </li>
+      <li>
+        Walid Phares: "Why would a 35-year-old Jessica Bowie allegedly pledge her allegiance to ISIS?... How many Jihadi Jessica's are there?"
+        <div class="fact-meta">
+          <span class="badge image">Image</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/illegals/Why_would_a_35-year-old_Jessica_Bowie_allegedly_pledge_her_allegiance_to_ISIS_H_0.jpg</span>
+          <span class="src"><a href="https://x.com/WalidPhares/status/2090538510700642405" target="_blank">Source: @WalidPhares</a></span>
+        </div>
+      </li>
+      <li>
+        DOJ charging document: Albany woman charged in ISIS-inspired terror plot targeting the New York State Capitol.
+        <div class="fact-meta">
+          <span class="badge textonly">Article</span>
+          <span class="src"><a href="https://www.justice.gov/opa/pr/albany-new-york-woman-charged-isis-inspired-terror-plot-targeting-new-york-state-capitol" target="_blank">Source: justice.gov</a></span>
+        </div>
+      </li>
+      <li>
+        Sec. Scott Bessent on tariff refunds: "The Democrat AGs who filed the ridiculous lawsuit wanted the money to go back to the payer of record &mdash; so that is corporate welfare... The American people HAD THE MONEY in the U.S. Treasury and we were forced to give it back."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/courts/SecScottBessent_on_tariffs_refundsThe_Democrat_AGs_who_filed_the_ridiculou_0.mp4</span>
+          <span class="src"><a href="https://x.com/RapidResponse47/status/2090471553527886102" target="_blank">Source: @RapidResponse47</a></span>
+        </div>
+      </li>
+      <li>
+        Newsom brags about expanding healthcare to illegal immigrants in California: "We've expanded health care in a controversial way. I'm not naive, and I'll take the grief."
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/democrats/Gavin_Newsom_brags_about_providing_health_care_to_illegals_in_CaliforniaWev_0.mp4</span>
+          <span class="src"><a href="https://x.com/WesternLensman/status/2090417077723041907" target="_blank">Source: @WesternLensman</a></span>
+        </div>
+      </li>
+      <li>
+        Sec. Rubio sanctions Cuban regime front group ICAP and nine entities &mdash; including convicted Cuban spy Fernando Gonz&aacute;lez Llort &mdash; for infiltrating and radicalizing Americans; warns foreign banks servicing these entities risk sanctions too.
+        <div class="fact-meta">
+          <span class="badge textonly">Text Only</span>
+          <span class="src"><a href="https://x.com/SecRubio/status/2090503929884983576" target="_blank">Source: @SecRubio</a></span>
+        </div>
+      </li>
+      <li>
+        NJ Gov. Sherrill: "It's easier to get an AR-15 in the United States than it is to get an abortion" &mdash; condemns rollbacks of reproductive rights and gender-affirming care.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/abortion/Its_easier_to_get_an_AR-15_in_the_United_States_than_it_is_to_get_an_abortion_0.mp4</span>
+          <span class="src"><a href="https://x.com/JustTheNews/status/2090508387582669049" target="_blank">Source: @JustTheNews</a></span>
+        </div>
+      </li>
+      <li>
+        Minneapolis: Abdi Salah &mdash; ex-Frey admin official and Feeding Our Future fraudster &mdash; arrested for SECOND DWI in a month, refused blood/urine test, fentanyl found.
+        <div class="fact-meta">
+          <span class="badge video">Video</span>
+          <span class="badge nas" onclick="copyNas(this)" title="Click to copy">//TKC/8-20-26/democrats/BREAKING_OVERNIGHT_For_the_SECOND_time_former_Minneapolis_Mayor_Jacob_Fre_0.mp4</span>
+          <span class="src"><a href="https://x.com/EricLDaugh/status/2090424967884091494" target="_blank">Source: @EricLDaugh</a></span>
+        </div>
+      </li>
+    </ul>
+
+  </div>
+</section>
+
+<!-- ============ MEDIA INDEX ============ -->
+<section class="segment" id="media-index">
+  <div class="seg-header" onclick="toggleSeg(this)">
+    <h3>NAS Media Index &mdash; 8-20-26</h3>
+    <span class="chev">&#9660;</span>
+  </div>
+  <div class="seg-body">
+    <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">All clips already sorted into topic folders. Click any path to copy.</p>
+    <table class="rundown">
+      <tr><th>Topic</th><th>File</th><th>Story</th></tr>
+      <tr><td>swalwell</td><td><span class="badge nas" onclick="copyNas(this)">BREAKING_The_FBI_has_seized_former_Rep_Eric_Swalwells_electronic_devices_as_p_0.mp4</span></td><td>Fox News &mdash; FBI seizes Swalwell devices</td></tr>
+      <tr><td>swalwell</td><td><span class="badge nas" onclick="copyNas(this)">This_Swalwell_clip_from_March_is_insane_knowing_what_we_know_nowHe_said_if_t_0.mp4</span></td><td>Fang Fang Files clip (March)</td></tr>
+      <tr><td>swalwell</td><td><span class="badge nas" onclick="copyNas(this)">2025_Eric_Swalwell_says_the_criminal_justice_system_should_focus_on_and_throw_t_0.mp4</span></td><td>"Throw the book" clip (2025)</td></tr>
+      <tr><td>swalwell</td><td><span class="badge nas" onclick="copyNas(this)">CA_state_senator_Aisha_Wahab_an_Afghan_Muslim_born_in_NYC_is_currently_leading_0.mp4</span></td><td>Wahab leading runoff / H-1B</td></tr>
+      <tr><td>swalwell</td><td><span class="badge nas" onclick="copyNas(this)">Aisha_Wahab_who_may_replace_Eric_Swalwell_boasts_that_California_is_refusing_t_0.mp4</span></td><td>Wahab on stalling ICE deportations</td></tr>
+      <tr><td>swalwell</td><td><span class="badge nas" onclick="copyNas(this)">Swalwell_Gone_This_Is_Whos_Next_CA-14_Could_Add_Another_Rashida_Tlaib_Ally_0.mp4</span></td><td>Wahab profile / Piker rapid-fire</td></tr>
+      <tr><td>dsa</td><td><span class="badge nas" onclick="copyNas(this)">WATCH_KarenWhitsett4_warns_Michigan_voters_about_Abdul_El-Sayeds_Medicare_f_0.mp4</span></td><td>Whitsett vs. El-Sayed Medicare for All</td></tr>
+      <tr><td>dsa</td><td><span class="badge nas" onclick="copyNas(this)">Senate_Democrat_Leader_Chuck_Schumer_says_the_far-Left_Democrats_running_for_Sen_0.mp4</span></td><td>Schumer praises far-left candidates</td></tr>
+      <tr><td>dsa</td><td><span class="badge nas" onclick="copyNas(this)">WOW_Lydia_Moynihan_The_alternative_is_the_DSA_Democratic_Socialists_of_Ame_0.mp4</span></td><td>Cato $200T study</td></tr>
+      <tr><td>dsa</td><td><span class="badge nas" onclick="copyNas(this)">What_are_the_Democratic_Socialists_up_to_Hating_the_US_Constituti_0.mp4</span></td><td>DSA roadmap to revolution</td></tr>
+      <tr><td>nixon</td><td><span class="badge nas" onclick="copyNas(this)">MSNOWs_Symone_Sanders_tries_to_help_Angie_Nixon_spin_that_she_joined_the_DSA_0.mp4</span></td><td>Angie Nixon DSA spin fail</td></tr>
+      <tr><td>piker</td><td><span class="badge nas" onclick="copyNas(this)">Hasan_Piker_There_is_no_force_as_destructive_to_American_democracy_to_the_l_0.mp4</span></td><td>Piker: GOP "despises you"</td></tr>
+      <tr><td>illegals</td><td><span class="badge nas" onclick="copyNas(this)">Thanks_to_the_brilliant_work_of_FBIAlbany_and_our_partners_-_this_FBI_stopped_y_0.mp4</span></td><td>Kash Patel &mdash; Bowie arrest</td></tr>
+      <tr><td>illegals</td><td><span class="badge nas" onclick="copyNas(this)">HOLY_SMOKES_The_Muslim_woman_who_tried_to_bomb_the_New_York_State_Capitol_0.mp4</span></td><td>Bowie plot details</td></tr>
+      <tr><td>illegals</td><td><span class="badge nas" onclick="copyNas(this)">Why_would_a_35-year-old_Jessica_Bowie_allegedly_pledge_her_allegiance_to_ISIS_H_0.jpg</span></td><td>Phares commentary (image)</td></tr>
+      <tr><td>courts</td><td><span class="badge nas" onclick="copyNas(this)">SecScottBessent_on_tariffs_refundsThe_Democrat_AGs_who_filed_the_ridiculou_0.mp4</span></td><td>Bessent on tariff refunds</td></tr>
+      <tr><td>democrats</td><td><span class="badge nas" onclick="copyNas(this)">Gavin_Newsom_brags_about_providing_health_care_to_illegals_in_CaliforniaWev_0.mp4</span></td><td>Newsom healthcare for illegals</td></tr>
+      <tr><td>democrats</td><td><span class="badge nas" onclick="copyNas(this)">RepAngieCraig_D-MN_on_Lt_Gov_peggyFlanagan_D-MN_Senate_primary_win_We_0.mp4</span></td><td>Craig on Flanagan win</td></tr>
+      <tr><td>democrats</td><td><span class="badge nas" onclick="copyNas(this)">BREAKING_OVERNIGHT_For_the_SECOND_time_former_Minneapolis_Mayor_Jacob_Fre_0.mp4</span></td><td>Feeding Our Future fraudster DWI</td></tr>
+      <tr><td>abortion</td><td><span class="badge nas" onclick="copyNas(this)">Its_easier_to_get_an_AR-15_in_the_United_States_than_it_is_to_get_an_abortion_0.mp4</span></td><td>Sherrill AR-15/abortion quote</td></tr>
+    </table>
+    <div class="note">Missing from NAS: NY Post airport-confrontation photo (@nypost). Rubio Cuba sanctions tweet is text-only (no media exists).</div>
+  </div>
+</section>
+
+<footer>
+  Generated from #news-updates &middot; August 20, 2026 &middot; 28 posts processed via fxtwitter API
+</footer>
+
+</main>
+</div>
+
+<script>
+function toggleSeg(h) {
+  h.parentElement.classList.toggle('collapsed');
+}
+function copyNas(el) {
+  const txt = el.textContent.trim();
+  const full = txt.startsWith('//TKC') ? '//' + txt.replace(/^\/+/, '') : txt;
+  navigator.clipboard.writeText(full).then(() => {
+    const orig = el.textContent;
+    el.textContent = 'COPIED!';
+    setTimeout(() => { el.textContent = orig; }, 900);
+  });
+}
+// Highlight active sidebar link on scroll
+const links = [...document.querySelectorAll('nav a.navlink')];
+const targets = links.map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+window.addEventListener('scroll', () => {
+  let current = null;
+  for (const t of targets) {
+    if (t.getBoundingClientRect().top < 120) current = t.id;
+  }
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+}, { passive: true });
+</script>
+</body>
+</html>
